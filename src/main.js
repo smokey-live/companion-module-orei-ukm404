@@ -1,10 +1,9 @@
 const { InstanceBase, InstanceStatus, Regex, runEntrypoint } = require('@companion-module/base')
 const { MatrixClient } = require('./protocol')
-const choices = (label) => Array.from({ length: 4 }, (_, i) => ({ id: i + 1, label: `${label} ${i + 1}` }))
-const dropdown = (id, label) => ({ type: 'dropdown', id, label, default: 1, choices: choices(label) })
+const portName = (config, kind, port) =>
+	String(config?.[`${kind}_${port}_name`] ?? '').trim() || `${kind === 'host' ? 'Host' : 'Device'} ${port}`
 class UKM404 extends InstanceBase {
 	async init(config) {
-		this.define()
 		await this.configUpdated(config)
 	}
 	async destroy() {
@@ -24,11 +23,21 @@ class UKM404 extends InstanceBase {
 				min: 0.5,
 				max: 3600,
 			},
+			...['host', 'device'].flatMap((kind) =>
+				Array.from({ length: 4 }, (_, i) => ({
+					type: 'textinput',
+					id: `${kind}_${i + 1}_name`,
+					label: `${kind === 'host' ? 'Host' : 'Device'} ${i + 1} name`,
+					width: 6,
+					default: `${kind === 'host' ? 'Host' : 'Device'} ${i + 1}`,
+				})),
+			),
 		]
 	}
 	async configUpdated(config) {
 		await this.destroy()
 		this.config = config
+		this.define()
 		this.routes = {}
 		this.connected = false
 		this.setVariableValues({ connected: 'No' })
@@ -78,15 +87,40 @@ class UKM404 extends InstanceBase {
 	}
 	publish() {
 		const values = {}
-		for (let d = 1; d <= 4; d++) values[`device_${d}_host`] = this.routes[d] ?? 'Unknown'
+		for (let d = 1; d <= 4; d++) {
+			values[`host_${d}_name`] = portName(this.config, 'host', d)
+			values[`device_${d}_name`] = portName(this.config, 'device', d)
+			values[`device_${d}_host`] = this.routes[d] ?? 'Unknown'
+			values[`device_${d}_host_name`] = this.routes[d] ? portName(this.config, 'host', this.routes[d]) : 'Unknown'
+		}
 		this.setVariableValues(values)
 		this.checkFeedbacks('route')
 	}
 	define() {
+		const dropdown = (id, label) => ({
+			type: 'dropdown',
+			id,
+			label,
+			default: 1,
+			choices: Array.from({ length: 4 }, (_, i) => ({
+				id: i + 1,
+				label: `${i + 1}: ${portName(this.config, id, i + 1)}`,
+			})),
+		})
 		this.routes = {}
 		this.connected = false
 		this.setVariableDefinitions([
 			{ variableId: 'connected', name: 'Matrix connected' },
+			...['host', 'device'].flatMap((kind) =>
+				Array.from({ length: 4 }, (_, i) => ({
+					variableId: `${kind}_${i + 1}_name`,
+					name: `${kind === 'host' ? 'Host' : 'Device'} ${i + 1} name`,
+				})),
+			),
+			...Array.from({ length: 4 }, (_, i) => ({
+				variableId: `device_${i + 1}_host_name`,
+				name: `Device ${i + 1} selected host name`,
+			})),
 			...Array.from({ length: 4 }, (_, i) => ({
 				variableId: `device_${i + 1}_host`,
 				name: `Device ${i + 1} selected host (1–4 or Unknown)`,
@@ -135,9 +169,14 @@ class UKM404 extends InstanceBase {
 			for (let h = 1; h <= 4; h++)
 				presets[`d${d}h${h}`] = {
 					type: 'button',
-					category: `Device ${d}`,
-					name: `Device ${d} to Host ${h}`,
-					style: { text: `Device ${d}\nHost ${h}`, size: 'auto', color: 0xffffff, bgcolor: 0x222222 },
+					category: `${d}: ${portName(this.config, 'device', d)}`,
+					name: `${portName(this.config, 'device', d)} to ${portName(this.config, 'host', h)}`,
+					style: {
+						text: `$(this:device_${d}_name)\n$(this:host_${h}_name)`,
+						size: 'auto',
+						color: 0xffffff,
+						bgcolor: 0x222222,
+					},
 					steps: [{ down: [{ actionId: 'route', options: { device: d, host: h } }], up: [] }],
 					feedbacks: [
 						{ feedbackId: 'route', options: { device: d, host: h }, style: { bgcolor: 0x008800, color: 0xffffff } },
