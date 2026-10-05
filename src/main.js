@@ -172,7 +172,7 @@ class UKM404 extends InstanceBase {
 					category: `${d}: ${portName(this.config, 'device', d)}`,
 					name: `${portName(this.config, 'device', d)} to ${portName(this.config, 'host', h)}`,
 					style: {
-						text: `$(this:device_${d}_name)\n$(this:host_${h}_name)`,
+						text: `$(ukm404:device_${d}_name)\n$(ukm404:host_${h}_name)`,
 						size: 'auto',
 						color: 0xffffff,
 						bgcolor: 0x222222,
