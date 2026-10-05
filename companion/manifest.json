@@ -5,7 +5,7 @@
 	"name": "OREI UKM-404",
 	"shortname": "UKM404",
 	"description": "Control and monitor the OREI UKM-404 4x4 USB matrix",
-	"version": "1.0.2",
+	"version": "1.1.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/smokey-live/companion-module-orei-ukm404.git",
 	"bugs": "https://github.com/smokey-live/companion-module-orei-ukm404/issues",
