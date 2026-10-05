@@ -1,0 +1,28 @@
+{
+	"$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json",
+	"type": "connection",
+	"id": "orei-ukm404",
+	"name": "OREI UKM-404",
+	"shortname": "UKM404",
+	"description": "Control and monitor the OREI UKM-404 4x4 USB matrix",
+	"version": "1.0.2",
+	"license": "MIT",
+	"repository": "git+https://github.com/smokey-live/companion-module-orei-ukm404.git",
+	"bugs": "https://github.com/smokey-live/companion-module-orei-ukm404/issues",
+	"maintainers": [
+		{
+			"name": "smokey-live",
+			"email": "smokeyx@gmail.com"
+		}
+	],
+	"runtime": {
+		"type": "node22",
+		"api": "nodejs-ipc",
+		"apiVersion": "0.0.0",
+		"entrypoint": "../src/main.js"
+	},
+	"legacyIds": [],
+	"manufacturer": "OREI",
+	"products": ["UKM-404"],
+	"keywords": ["USB", "matrix", "telnet"]
+}
